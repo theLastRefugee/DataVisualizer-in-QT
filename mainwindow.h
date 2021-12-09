@@ -31,7 +31,6 @@ private slots:
     void on_pushButton_clicked();
 
 
-
     void on_exitButton_clicked();
 
     void on_checkBox_longitude_stateChanged(int arg1);

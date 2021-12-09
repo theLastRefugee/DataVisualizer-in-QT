@@ -7,6 +7,8 @@
 #include <thread_function.h>
 #include <QWidget>
 #include <QDialog>
+#include <algorithm>
+#include <utils.h>
 
 namespace Ui {
 class FileVisualizer;
@@ -23,8 +25,12 @@ public:
 
     void read_file();
 
+    void draw_barchart_for_top10(QVector<QPair<int, int> > *top10_vector);
+
 private slots:
     void on_exitButton_clicked();
+
+    void on_top10Button_clicked();
 
 private:
     Ui::FileVisualizer *ui;

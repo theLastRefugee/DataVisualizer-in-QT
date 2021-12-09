@@ -14,14 +14,16 @@ SOURCES += \
     main.cpp \
     mainwindow.cpp \
     thread_function.cpp \
-    timer.cpp
+    timer.cpp \
+    utils.cpp
 
 HEADERS += \
     filevisualizer.h \
     global_variable.h \
     mainwindow.h \
     thread_function.h \
-    timer.h
+    timer.h \
+    utils.h
 
 FORMS += \
     filevisualizer.ui \
