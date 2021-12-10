@@ -9,6 +9,7 @@
 #include <QDialog>
 #include <algorithm>
 #include <utils.h>
+#include <QtCharts>
 
 namespace Ui {
 class FileVisualizer;
@@ -31,6 +32,8 @@ private slots:
     void on_exitButton_clicked();
 
     void on_top10Button_clicked();
+
+    void on_clearButton_clicked();
 
 private:
     Ui::FileVisualizer *ui;

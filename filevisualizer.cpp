@@ -5,6 +5,10 @@
 #include "QtAlgorithms"
 #include <algorithm>
 
+#include <QBarSet>
+#include <QBarSeries>
+#include <QBarCategoryAxis>
+
 FileVisualizer::FileVisualizer(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::FileVisualizer)
@@ -106,7 +110,11 @@ void FileVisualizer::on_top10Button_clicked()
     int user_id_upper = this->ui->user_id_upper->toPlainText().toInt();
     int total_length = AllUsers->length();
 
+    qDebug()<<"lower user id:"<<user_id_lower;
+    qDebug()<<"upper user id:"<<user_id_upper;
+
     QVector<SingleUser> *interested_users = new QVector<SingleUser>;
+    // 第一个int表示location id，第二个int表示count，访问数量
     QMap<int, int> *poi_counter = new QMap<int, int>;
 
 
@@ -178,11 +186,98 @@ void FileVisualizer::on_top10Button_clicked()
 
     draw_barchart_for_top10(top10_vector_for_draw);
 
+    qDebug()<<"show finished";
 
+    this->ui->state_textEdit->setText("Top 10 POIs are shown successfully.");
+    QCoreApplication::processEvents();
 }
 
 
 void FileVisualizer::draw_barchart_for_top10(QVector<QPair<int, int> > *top10_vector)
 {
+    int total_length = top10_vector->length();
+
+    qDebug()<<"Top"+QString::number(total_length);
+    QBarSet *set0 = new QBarSet("Top"+QString(total_length));
+//        QBarSet *set1 = new QBarSet("John");
+//        QBarSet *set2 = new QBarSet("Axel");
+//        QBarSet *set3 = new QBarSet("Mary");
+//        QBarSet *set4 = new QBarSet("Samantha");
+
+    for(int i=0; i < total_length; ++i)
+    {
+        *set0 << top10_vector->at(i).second;
+    }
+//        *set1 << 5 << 0 << 0 << 4 << 0 << 7;
+//        *set2 << 3 << 5 << 8 << 19<< 8 << 5;
+//        *set3 << 5 << 6 << 7 << 3 << 4 << 5;
+//        *set4 << 9 << 7 << 5 << 3 << 1 << 2;
+
+
+
+        QBarSeries *series = new QBarSeries();
+            series->append(set0);
+//            series->append(set1);
+//            series->append(set2);
+//            series->append(set3);
+//            series->append(set4);
+
+            QChart *chart = new QChart();
+                chart->addSeries(series);
+                chart->setTitle("Top " +QString::number(total_length) + " Point-of-Interests (POIs) !");
+                chart->setAnimationOptions(QChart::SeriesAnimations);
+
+
+
+        QStringList categories;
+
+        for(int i=0; i < total_length; ++i)
+        {
+            //这是横坐标
+            int location_id =top10_vector->at(i).first;
+
+            categories << QString::number(location_id);
+        }
+
+            QBarCategoryAxis *axis = new QBarCategoryAxis();
+            axis->append(categories);
+            axis->setTitleText("location id");
+
+            chart->createDefaultAxes();//创建默认的左侧的坐标轴（根据 QBarSet 设置的值）
+            chart->axisY()->setTitleText("visit counts");
+
+            chart->setAxisX(axis, series);//设置坐标轴
+
+
+            chart->legend()->setVisible(true); //设置图例为显示状态
+            chart->legend()->setAlignment(Qt::AlignBottom);//设置图例的显示位置在底部
+
+
+            // 画出来
+            QChartView *chartView = new QChartView(chart);
+            chartView->setRenderHint(QPainter::Antialiasing);
+            chartView->setObjectName("drawing_chart");
+
+            //放在画布上
+            this->ui->drawingLayout->addWidget(chartView);
+
+
+            QCoreApplication::processEvents();
+
+
 
 }
+
+void FileVisualizer::on_clearButton_clicked()
+{
+
+        QLayoutItem *child;
+        while ((child = this->ui->drawingLayout->takeAt(0)) != 0) {
+            delete child;
+        }
+        qDebug()<<"clear canvas.";
+        this->show();
+        this->repaint();
+        QCoreApplication::processEvents();
+}
+

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>886</width>
-    <height>457</height>
+    <height>576</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,14 +16,14 @@
   <widget class="QLabel" name="label_5">
    <property name="geometry">
     <rect>
-     <x>0</x>
+     <x>290</x>
      <y>10</y>
-     <width>201</width>
+     <width>251</width>
      <height>16</height>
     </rect>
    </property>
    <property name="text">
-    <string>🦾Large Data Visualizer V0.1</string>
+    <string>Large Data Visualizer V0.2      ©Yanjie Ze </string>
    </property>
   </widget>
   <widget class="QLabel" name="label_6">
@@ -36,29 +36,29 @@
     </rect>
    </property>
    <property name="text">
-    <string>Options</string>
+    <string>Options:</string>
    </property>
   </widget>
   <widget class="QLabel" name="label_13">
    <property name="geometry">
     <rect>
      <x>590</x>
-     <y>20</y>
-     <width>60</width>
+     <y>30</y>
+     <width>61</width>
      <height>16</height>
     </rect>
    </property>
    <property name="text">
-    <string>Functions</string>
+    <string>Functions:</string>
    </property>
   </widget>
   <widget class="QWidget" name="layoutWidget">
    <property name="geometry">
     <rect>
-     <x>90</x>
-     <y>390</y>
+     <x>220</x>
+     <y>530</y>
      <width>481</width>
-     <height>51</height>
+     <height>83</height>
     </rect>
    </property>
    <layout class="QHBoxLayout" name="horizontalLayout">
@@ -87,10 +87,10 @@
   <widget class="QWidget" name="layoutWidget">
    <property name="geometry">
     <rect>
-     <x>10</x>
+     <x>20</x>
      <y>50</y>
      <width>551</width>
-     <height>151</height>
+     <height>101</height>
     </rect>
    </property>
    <layout class="QVBoxLayout" name="verticalLayout">
@@ -230,14 +230,14 @@
      <x>590</x>
      <y>50</y>
      <width>291</width>
-     <height>71</height>
+     <height>100</height>
     </rect>
    </property>
    <layout class="QVBoxLayout" name="verticalLayout_2">
     <item>
      <widget class="QPushButton" name="top10Button">
       <property name="text">
-       <string>🔥Top 10 Popular POIs!</string>
+       <string>Top 10 Popular POIs!</string>
       </property>
      </widget>
     </item>
@@ -248,13 +248,20 @@
       </property>
      </widget>
     </item>
+    <item>
+     <widget class="QPushButton" name="clearButton">
+      <property name="text">
+       <string>Clear Cavans</string>
+      </property>
+     </widget>
+    </item>
    </layout>
   </widget>
-  <widget class="QWidget" name="">
+  <widget class="QWidget" name="layoutWidget">
    <property name="geometry">
     <rect>
-     <x>60</x>
-     <y>340</y>
+     <x>190</x>
+     <y>480</y>
      <width>541</width>
      <height>51</height>
     </rect>
@@ -268,6 +275,17 @@
      </widget>
     </item>
    </layout>
+  </widget>
+  <widget class="QWidget" name="verticalLayoutWidget">
+   <property name="geometry">
+    <rect>
+     <x>60</x>
+     <y>190</y>
+     <width>791</width>
+     <height>281</height>
+    </rect>
+   </property>
+   <layout class="QVBoxLayout" name="drawingLayout"/>
   </widget>
  </widget>
  <resources/>

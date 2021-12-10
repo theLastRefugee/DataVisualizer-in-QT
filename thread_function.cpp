@@ -8,7 +8,7 @@ void ReadThread::run()
 
     if(!our_file.open(QIODevice::ReadOnly | QIODevice::Text))
    {
-       qDebug()<<"Can't open the file!"<<Qt::endl;
+       qDebug()<<"Can't open the file!";
 
    }
 
