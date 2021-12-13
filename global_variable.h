@@ -21,7 +21,7 @@ extern bool use_time;
 extern bool use_latitude;
 extern bool use_longitude ;
 
-class SinlgeTime
+class SingleTime
 {
 public:
     int year;
@@ -29,11 +29,11 @@ public:
     int day;
     QString detail_time;
 
-    SinlgeTime(){}
+    SingleTime(){}
 
-    SinlgeTime(int y, int m, int d):year(y), month(m), day(d){}
+    SingleTime(int y, int m, int d):year(y), month(m), day(d){}
 
-    SinlgeTime(QString t)
+    SingleTime(QString t)
     {
         QStringList time_list = t.split('-');
         year = time_list[0].toInt();
@@ -44,6 +44,23 @@ public:
 
     }
 
+    /* 为了map能用，需要重载小于号 */
+    inline bool operator < (SingleTime const &data) const
+    {
+        if(year != data.year)
+        {
+            return year < data.year;
+        }
+        else if(month != data.month)
+        {
+            return month < data.month;
+        }
+        else
+        {
+            return day < data.day;
+        }
+    }
+
 };
 
 
@@ -52,7 +69,7 @@ class SingleUser
 public:
     int user_id;
     int location_id;
-    SinlgeTime time;
+    SingleTime time;
     float latitude;
     float longitude;
 
@@ -62,11 +79,12 @@ public:
     {
         user_id = userid;
         location_id = locationid;
-        time = SinlgeTime(t);
+        time = SingleTime(t);
         latitude = la;
         longitude = lo;
-
     }
+
+
 };
 
 

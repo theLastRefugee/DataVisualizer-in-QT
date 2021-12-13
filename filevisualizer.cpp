@@ -8,6 +8,8 @@
 #include <QBarSet>
 #include <QBarSeries>
 #include <QBarCategoryAxis>
+#include <global_variable.h>
+
 
 FileVisualizer::FileVisualizer(QWidget *parent) :
     QDialog(parent),
@@ -341,10 +343,127 @@ void FileVisualizer::on_checkinButton_clicked()
     longitude_upper = qMax(longitude_upper, LongitudeLower);
     longitude_upper = qMin(longitude_upper, LongitudeUpper);
 
+    qDebug()<<"availabel range:";
+    qDebug()<<"location id: "<<LocationLower<<" to "<<LocationUpper;
+    qDebug()<<"latitude: "<<LatitudeLower<<" to "<<LatitudeUpper;
+    qDebug()<<"longitude: "<<LongitudeLower<<" to "<<LongitudeUpper;
+
+    qDebug()<<"draw range:";
+    qDebug()<<"location id: "<<location_id_lower<<" to "<<location_id_upper;
+    qDebug()<<"latitude: "<<latitude_lower<<" to "<<latitude_upper;
+    qDebug()<<"longitude: "<<longitude_lower<<" to "<<longitude_upper;
+
+    QMap<int, QMap<SingleTime, int> > *poi_data_counter = new QMap<int, QMap<SingleTime, int> >;
+
+    // step 1, count each poi with time
+    for(int i=0; i< AllUsers->length() ; ++i )
+    {
+        SingleUser tmp_usr = AllUsers->at(i);
+
+        if(tmp_usr.location_id>=location_id_lower && tmp_usr.location_id<=location_id_upper &&
+           tmp_usr.latitude>=latitude_lower && tmp_usr.latitude<=latitude_upper &&
+            tmp_usr.longitude>= longitude_lower && tmp_usr.longitude<= longitude_upper)
+          // in the range
+        {
+            if(poi_data_counter->contains(tmp_usr.location_id))
+            // this location has be recorded, update the count by date
+            {
+                QMap<SingleTime, int> tmpMap = poi_data_counter->value(tmp_usr.location_id);
+                if(tmpMap.contains(tmp_usr.time))// date included
+                {
+                    tmpMap.insert(tmp_usr.time, tmpMap.value(tmp_usr.time)+1 ); // update count
+                    poi_data_counter->insert(tmp_usr.location_id, tmpMap); // update map
+                }
+                else// date not inclueded
+                {
+                    tmpMap.insert(tmp_usr.time, 1 ); // init count
+                    poi_data_counter->insert(tmp_usr.location_id, tmpMap); // update map
+                }
+            }
+            else // this location not recorded
+            {
+                QMap<SingleTime, int> tmpMap;
+                tmpMap.insert(tmp_usr.time, 1);
+                poi_data_counter->insert(tmp_usr.location_id , tmpMap);
+            }
+        }
+     }
 
 
-   /* TODO: finsih this */
+    /* step 2, drawing */
+    /* reference: https://doc.qt.io/qt-5/qtcharts-datetimeaxis-example.html */
 
+
+    QChart *chart = new QChart();
+
+    //set x axis
+    QDateTimeAxis *axisX = new QDateTimeAxis;
+    axisX->setTickCount(10);
+    axisX->setFormat("MMM yyyy");
+    axisX->setTitleText("Date");
+    chart->addAxis(axisX, Qt::AlignBottom);
+
+    // set y axis
+    QValueAxis *axisY = new QValueAxis;
+    axisY->setLabelFormat("%i");
+    axisY->setTitleText("Visit counts");
+    chart->addAxis(axisY, Qt::AlignLeft);
+
+    // set title
+    QString title ="Checking-ins of Locations over Time!\n location id:"+QString::number(location_id_lower)+" to "+QString::number(location_id_upper)+'\n';
+    title += "latitude:"+QString::number(latitude_lower)+" to "+QString::number(latitude_upper)+'\n';
+    title += "longitude:"+QString::number(longitude_lower)+" to "+QString::number(longitude_upper)+'\n';
+    chart->setTitle(title);
+
+    // draw each line
+    QList<int> out_keys = poi_data_counter->keys();
+
+    int max_count = 0;
+    QDateTime min_date;
+    QDateTime max_date;
+    min_date.setDate(QDate(2021, 11, 13));
+    max_date.setDate(QDate(1949, 10, 1));
+
+    for(int i=0; i<out_keys.length() ; i++)
+    {
+        QLineSeries *series = new QLineSeries();
+        int location_id = out_keys.at(i);
+        series->setName(QString::number(location_id));
+
+        QMap<SingleTime, int> tmpMap = poi_data_counter->value(location_id); // get map
+        QList<SingleTime> in_keys = tmpMap.keys();
+        for(int j=0; j<in_keys.length(); ++j)
+        {
+            SingleTime tmp_key = in_keys.at(j);
+            int tmp_value = tmpMap.value(tmp_key);
+            QDateTime momentInTime;
+            momentInTime.setDate(QDate(tmp_key.year, tmp_key.month , tmp_key.day));
+            series->append(momentInTime.toMSecsSinceEpoch(),  tmp_value);
+//            qDebug()<<"tmp value:"<<tmp_value;
+            max_count = qMax(max_count, tmp_value);
+            min_date = qMin(momentInTime, min_date);
+            max_date = qMax(momentInTime,max_date);
+        }
+        chart->addSeries(series);
+        series->attachAxis(axisX);
+        series->attachAxis(axisY);
+    }
+
+    chart->legend()->setVisible(true);
+     chart->legend()->setAlignment(Qt::AlignBottom);
+    axisY->setRange(0, max_count);
+    axisX->setRange(min_date, max_date);
+
+    QChartView *chartView = new QChartView(chart);
+    chartView->setRenderHint(QPainter::Antialiasing);
+    chartView->setObjectName("drawing_chart");
+
+    // put on the canvas
+    this->ui->drawingLayout->addWidget(chartView);
+
+    this->ui->state_textEdit->setText("Checking-ins over time are shown successfully.");
+
+    QCoreApplication::processEvents();
 
 }
 

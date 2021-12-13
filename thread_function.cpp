@@ -38,6 +38,9 @@ void ReadThread::run()
 
         user_lower = qMin(user_id, user_lower);
 
+        LocationUpper = qMax(LocationUpper, location_id);
+        LocationLower = qMin(LocationLower, location_id);
+
         LatitudeUpper = qMax(LatitudeUpper, latitude);
         LatitudeLower = qMin(LatitudeLower, latitude);
 

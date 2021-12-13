@@ -23,7 +23,7 @@
     </rect>
    </property>
    <property name="text">
-    <string>Large Data Visualizer V0.2      ©Yanjie Ze </string>
+    <string>Large Data Visualizer V0.3      ©Yanjie Ze </string>
    </property>
   </widget>
   <widget class="QLabel" name="label_6">
@@ -90,7 +90,7 @@
      <x>30</x>
      <y>50</y>
      <width>551</width>
-     <height>111</height>
+     <height>101</height>
     </rect>
    </property>
    <layout class="QVBoxLayout" name="verticalLayout">
@@ -244,7 +244,7 @@
     <item>
      <widget class="QPushButton" name="checkinButton">
       <property name="text">
-       <string>Checking-ins of selected POIs!</string>
+       <string>Checking-ins of Selected POIs!</string>
       </property>
      </widget>
     </item>
