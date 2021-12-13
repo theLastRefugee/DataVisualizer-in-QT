@@ -2,6 +2,16 @@
 
 int FileLineCount = 0; // count the line read
 
+int user_upper=0;
+int user_lower=0;
+int LocationUpper=0;
+int LocationLower=0;
+float LatitudeUpper=0;
+float LatitudeLower=0;
+float LongitudeUpper=0;
+float LongitudeLower=0;
+
+
 
 bool USE_DEBUG = false;
 

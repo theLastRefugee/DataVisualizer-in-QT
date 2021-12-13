@@ -102,14 +102,32 @@ bool compare_for_top10(const QPair<int,int> & item1, const  QPair<int,int> & ite
  }
 
 
-/* implement the function: show top 10 POI */
+/*
+ * function: show top 10 POI
+ * constrain: user id
+*/
 void FileVisualizer::on_top10Button_clicked()
 {
     // get user id range
     int user_id_lower = this->ui->user_id_lower->toPlainText().toInt();
     int user_id_upper = this->ui->user_id_upper->toPlainText().toInt();
+
+    qDebug()<<"origin lower user id:"<<user_id_lower;
+    qDebug()<<"origin upper user id:"<<user_id_upper;
+
+
+    //value constrain
+    user_id_lower = qMax(user_lower, user_id_lower);
+    user_id_lower = qMin(user_upper, user_id_lower);
+
+    user_id_upper = qMax(user_lower, user_id_upper);
+    user_id_upper = qMin(user_upper, user_id_upper);
+
+
     int total_length = AllUsers->length();
 
+    qDebug()<<"total lower user id:"<<user_lower;
+    qDebug()<<"total upper user id:"<<user_upper;
     qDebug()<<"lower user id:"<<user_id_lower;
     qDebug()<<"upper user id:"<<user_id_upper;
 
@@ -184,7 +202,7 @@ void FileVisualizer::on_top10Button_clicked()
         }
     }
 
-    draw_barchart_for_top10(top10_vector_for_draw);
+    draw_barchart_for_top10(top10_vector_for_draw, user_id_lower, user_id_upper);
 
     qDebug()<<"show finished";
 
@@ -193,7 +211,7 @@ void FileVisualizer::on_top10Button_clicked()
 }
 
 
-void FileVisualizer::draw_barchart_for_top10(QVector<QPair<int, int> > *top10_vector)
+void FileVisualizer::draw_barchart_for_top10(QVector<QPair<int, int> > *top10_vector, int user_id_lower, int user_id_upper)
 {
     int total_length = top10_vector->length();
 
@@ -224,7 +242,14 @@ void FileVisualizer::draw_barchart_for_top10(QVector<QPair<int, int> > *top10_ve
 
             QChart *chart = new QChart();
                 chart->addSeries(series);
-                chart->setTitle("Top " +QString::number(total_length) + " Point-of-Interests (POIs) !");
+                if(user_id_lower!=user_id_upper)
+                {
+                chart->setTitle("Top " +QString::number(total_length) + " Point-of-Interests (POIs) for User "+QString::number(user_id_lower)+" to "+QString::number(user_id_upper)+" !");
+                }
+                else
+                {
+                   chart->setTitle("Top " +QString::number(total_length) + " Point-of-Interests (POIs) for User "+QString::number(user_id_lower)+ " !");
+                }
                 chart->setAnimationOptions(QChart::SeriesAnimations);
 
 
@@ -268,6 +293,7 @@ void FileVisualizer::draw_barchart_for_top10(QVector<QPair<int, int> > *top10_ve
 
 }
 
+
 void FileVisualizer::on_clearButton_clicked()
 {
 
@@ -279,5 +305,46 @@ void FileVisualizer::on_clearButton_clicked()
         this->show();
         this->repaint();
         QCoreApplication::processEvents();
+}
+
+/*
+ * function: checking-in counts along time of POIs
+ * constrain: location id, latitude, longitude,
+ */
+void FileVisualizer::on_checkinButton_clicked()
+{
+
+    int location_id_lower = this->ui->location_id_lower->toPlainText().toInt();
+    int location_id_upper = this->ui->location_id_upper->toPlainText().toInt();
+
+    float latitude_lower = this->ui->latitude_lower->toPlainText().toFloat();
+    float latitude_upper = this->ui->latitude_upper->toPlainText().toFloat();
+
+    float longitude_lower = this->ui->longitude_lower->toPlainText().toFloat();
+    float longitude_upper = this->ui->longitude_upper->toPlainText().toFloat();
+
+    location_id_lower = qMax(location_id_lower, LocationLower);
+    location_id_lower = qMin(location_id_lower, LocationUpper);
+
+    location_id_upper = qMax(location_id_upper, LocationLower);
+    location_id_upper = qMin(location_id_upper, LocationUpper);
+
+    latitude_lower = qMax(latitude_lower, LatitudeLower);
+    latitude_lower = qMin(latitude_lower, LatitudeUpper);
+
+    latitude_upper = qMax(latitude_upper, LatitudeLower);
+    latitude_upper = qMin(latitude_upper, LatitudeUpper);
+
+    longitude_lower = qMax(longitude_lower, LongitudeLower);
+    longitude_lower = qMin(longitude_lower, LongitudeUpper);
+
+    longitude_upper = qMax(longitude_upper, LongitudeLower);
+    longitude_upper = qMin(longitude_upper, LongitudeUpper);
+
+
+
+   /* TODO: finsih this */
+
+
 }
 

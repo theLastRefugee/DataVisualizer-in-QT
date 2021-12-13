@@ -26,7 +26,7 @@ public:
 
     void read_file();
 
-    void draw_barchart_for_top10(QVector<QPair<int, int> > *top10_vector);
+    void draw_barchart_for_top10(QVector<QPair<int, int> > *top10_vector, int user_id_lower, int user_id_upper);
 
 private slots:
     void on_exitButton_clicked();
@@ -34,6 +34,8 @@ private slots:
     void on_top10Button_clicked();
 
     void on_clearButton_clicked();
+
+    void on_checkinButton_clicked();
 
 private:
     Ui::FileVisualizer *ui;

@@ -25,10 +25,28 @@ void ReadThread::run()
         }
         QStringList str_list = str_line.split(',');
         int user_id = str_list[0].toInt();
+
+
+
+
         int location_id = str_list[1].toInt();
         QString time = str_list[2];
         float latitude = str_list[3].toFloat();
         float longitude = str_list[4].toFloat();
+
+        user_upper = qMax(user_id, user_upper);
+
+        user_lower = qMin(user_id, user_lower);
+
+        LatitudeUpper = qMax(LatitudeUpper, latitude);
+        LatitudeLower = qMin(LatitudeLower, latitude);
+
+        LongitudeUpper = qMax(LongitudeUpper, longitude);
+        LongitudeLower = qMin(LongitudeLower, longitude);
+
+        /* TODO: add time limit */
+
+
 
         AllUsers->append(SingleUser(user_id, location_id, time, latitude, longitude));
 

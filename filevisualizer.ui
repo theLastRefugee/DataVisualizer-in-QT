@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>886</width>
-    <height>576</height>
+    <width>898</width>
+    <height>629</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -55,9 +55,9 @@
   <widget class="QWidget" name="layoutWidget">
    <property name="geometry">
     <rect>
-     <x>220</x>
-     <y>530</y>
-     <width>481</width>
+     <x>260</x>
+     <y>560</y>
+     <width>391</width>
      <height>83</height>
     </rect>
    </property>
@@ -87,10 +87,10 @@
   <widget class="QWidget" name="layoutWidget">
    <property name="geometry">
     <rect>
-     <x>20</x>
+     <x>30</x>
      <y>50</y>
      <width>551</width>
-     <height>101</height>
+     <height>111</height>
     </rect>
    </property>
    <layout class="QVBoxLayout" name="verticalLayout">
@@ -156,7 +156,7 @@
        </widget>
       </item>
       <item>
-       <widget class="QTextEdit" name="longitude_lower_2"/>
+       <widget class="QTextEdit" name="time_lower"/>
       </item>
       <item>
        <widget class="QLabel" name="label_12">
@@ -166,7 +166,7 @@
        </widget>
       </item>
       <item>
-       <widget class="QTextEdit" name="longitude_upper_2"/>
+       <widget class="QTextEdit" name="time_upper"/>
       </item>
      </layout>
     </item>
@@ -242,7 +242,7 @@
      </widget>
     </item>
     <item>
-     <widget class="QPushButton" name="pushButton_2">
+     <widget class="QPushButton" name="checkinButton">
       <property name="text">
        <string>Checking-ins of selected POIs!</string>
       </property>
@@ -260,10 +260,10 @@
   <widget class="QWidget" name="layoutWidget">
    <property name="geometry">
     <rect>
-     <x>190</x>
-     <y>480</y>
-     <width>541</width>
-     <height>51</height>
+     <x>130</x>
+     <y>510</y>
+     <width>661</width>
+     <height>41</height>
     </rect>
    </property>
    <layout class="QHBoxLayout" name="horizontalLayout_9">
