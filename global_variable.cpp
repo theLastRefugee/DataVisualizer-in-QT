@@ -10,7 +10,8 @@ float LatitudeUpper=0;
 float LatitudeLower=0;
 float LongitudeUpper=0;
 float LongitudeLower=0;
-
+SingleTime TimeLower(2021, 11, 13); // use my birthday to init
+SingleTime TimeUpper(1949, 10, 1); // use the natiaonal holiday to init
 
 
 bool USE_DEBUG = false;

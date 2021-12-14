@@ -9,6 +9,7 @@
 #include <QBarSeries>
 #include <QBarCategoryAxis>
 #include <global_variable.h>
+#include <QSplineSeries>
 
 
 FileVisualizer::FileVisualizer(QWidget *parent) :
@@ -47,7 +48,6 @@ void FileVisualizer::read_file()
 
     read_thread->start(); // begin to read with a thread
 
-    float i=1;
 
     while(FileLineCount <= FileLineTotal)
     {
@@ -60,7 +60,6 @@ void FileVisualizer::read_file()
         this->ui->progressBar->update();
 
         QCoreApplication::processEvents();
-        i++;
 
 
         if(USE_DEBUG)
@@ -88,9 +87,29 @@ void FileVisualizer::read_file()
     }
     FileLineCount = 0;
 
+
+    set_default_value();
 }
 
+void FileVisualizer::set_default_value()
+{
+    // set default value
+    this->ui->user_id_lower->setText( QString::number(user_lower) );
+    this->ui->user_id_upper->setText( QString::number(user_upper) );
 
+    this->ui->latitude_lower->setText( QString::number(LatitudeLower) );
+    this->ui->latitude_upper->setText( QString::number(LatitudeUpper) );
+
+    this->ui->longitude_lower->setText( QString::number(LongitudeLower) );
+    this->ui->longitude_upper->setText( QString::number(LongitudeUpper) );
+
+    this->ui->time_lower->setText( TimeLower.string());
+    this->ui->time_upper->setText( TimeUpper.string());
+
+    this->ui->location_id_lower->setText( QString::number(LocationLower) );
+    this->ui->location_id_upper->setText( QString::number(LocationUpper) );
+
+}
 void FileVisualizer::on_exitButton_clicked()
 {
     this->close();
@@ -325,6 +344,15 @@ void FileVisualizer::on_checkinButton_clicked()
     float longitude_lower = this->ui->longitude_lower->toPlainText().toFloat();
     float longitude_upper = this->ui->longitude_upper->toPlainText().toFloat();
 
+    SingleTime time_lower =  SingleTime(this->ui->time_lower->toPlainText() );
+    SingleTime time_upper =  SingleTime(this->ui->time_upper->toPlainText() );
+
+    time_lower = qMax(time_lower, TimeLower);
+    time_lower = qMin(time_lower, TimeUpper);
+
+    time_upper = qMax(time_upper, TimeLower);
+    time_upper = qMin(time_upper, TimeUpper);
+
     location_id_lower = qMax(location_id_lower, LocationLower);
     location_id_lower = qMin(location_id_lower, LocationUpper);
 
@@ -362,7 +390,8 @@ void FileVisualizer::on_checkinButton_clicked()
 
         if(tmp_usr.location_id>=location_id_lower && tmp_usr.location_id<=location_id_upper &&
            tmp_usr.latitude>=latitude_lower && tmp_usr.latitude<=latitude_upper &&
-            tmp_usr.longitude>= longitude_lower && tmp_usr.longitude<= longitude_upper)
+            tmp_usr.longitude>= longitude_lower && tmp_usr.longitude<= longitude_upper &&
+                tmp_usr.time >= time_lower && tmp_usr.time<=time_upper)
           // in the range
         {
             if(poi_data_counter->contains(tmp_usr.location_id))
@@ -410,9 +439,9 @@ void FileVisualizer::on_checkinButton_clicked()
     chart->addAxis(axisY, Qt::AlignLeft);
 
     // set title
-    QString title ="Checking-ins of Locations over Time!\n location id:"+QString::number(location_id_lower)+" to "+QString::number(location_id_upper)+'\n';
-    title += "latitude:"+QString::number(latitude_lower)+" to "+QString::number(latitude_upper)+'\n';
-    title += "longitude:"+QString::number(longitude_lower)+" to "+QString::number(longitude_upper)+'\n';
+    QString title ="Checking-ins of Locations over Time!  Location id:"+QString::number(location_id_lower)+" to "+QString::number(location_id_upper)+"<br>";
+    title += "latitude:"+QString::number(latitude_lower)+" to "+QString::number(latitude_upper)+" ";
+    title += "longitude:"+QString::number(longitude_lower)+" to "+QString::number(longitude_upper)+"<br>";
     chart->setTitle(title);
 
     // draw each line
@@ -426,7 +455,8 @@ void FileVisualizer::on_checkinButton_clicked()
 
     for(int i=0; i<out_keys.length() ; i++)
     {
-        QLineSeries *series = new QLineSeries();
+//        QLineSeries *series = new QLineSeries();
+        QSplineSeries *series = new QSplineSeries();
         int location_id = out_keys.at(i);
         series->setName(QString::number(location_id));
 
@@ -467,3 +497,280 @@ void FileVisualizer::on_checkinButton_clicked()
 
 }
 
+
+/*
+ * function: compare 2 users' visit
+*/
+void FileVisualizer::on_compare2userButton_clicked()
+{
+    int user_id1 = this->ui->user_id1->toPlainText().toInt();
+    int user_id2 = this->ui->user_id2->toPlainText().toInt();
+
+    FileLineCount = 0;
+    // find the user id
+    Get2UserThread *new_thread = new Get2UserThread;
+    new_thread->user_id1 = user_id1;
+    new_thread->user_id2 = user_id2;
+
+    new_thread->run();
+
+      this->ui->progressBar->setValue(0);
+    QCoreApplication::processEvents();
+    while(FileLineCount <= FileLineTotal)
+    {
+
+            float progress_ratio = float(FileLineCount) / float(FileLineTotal) * 100;
+
+
+        this->ui->progressBar->setValue(progress_ratio);
+        this->ui->progressBar->update();
+
+        QCoreApplication::processEvents();
+
+
+        if(USE_DEBUG)
+        {
+            if (FileLineCount%10000==0)
+            {
+                qDebug()<<"progress bar output:"<<FileLineCount;
+            }
+        }
+
+           if(FileLineCount==FileLineTotal)
+           {
+               break;
+           }
+    }
+    this->ui->progressBar->setValue(100);
+    this->ui->progressBar->update();
+    this->ui->state_textEdit->setText("Finding user id is finished.");
+
+    new_thread->wait();
+
+    /* begin to draw */
+
+    QChart *chart = new QChart();
+
+    //set x axis
+    QDateTimeAxis *axisX = new QDateTimeAxis;
+    axisX->setTickCount(10);
+    axisX->setFormat("MMM yyyy");
+    axisX->setTitleText("Date");
+    chart->addAxis(axisX, Qt::AlignBottom);
+
+    // set y axis
+    QValueAxis *axisY = new QValueAxis;
+    axisY->setLabelFormat("%i");
+    axisY->setTitleText("Location id");
+    chart->addAxis(axisY, Qt::AlignLeft);
+
+    // set title
+    QString title ="Difference of two Users' Visit!";
+
+    chart->setTitle(title);
+
+
+        QLineSeries *series1 = new QLineSeries();
+        QLineSeries *series2 = new QLineSeries();
+//        QSplineSeries *series = new QSplineSeries();
+
+        series1->setName(QString::number(user_id1));
+        series2->setName(QString::number(user_id2));
+
+         QVector<QPair<SingleTime, int> > user_vector1 = new_thread->user_id1_vector;
+         QVector<QPair<SingleTime, int> > user_vector2 = new_thread->user_id2_vector;
+
+         int max_count = 0;
+         QDateTime min_date;
+         QDateTime max_date;
+         min_date.setDate(QDate(2021, 11, 13));
+         max_date.setDate(QDate(1949, 10, 1));
+
+        for(int j=0; j<user_vector1.length(); ++j)
+        {
+            SingleTime tmp_key = user_vector1.at(j).first;
+            int tmp_value = user_vector1.at(j).second;
+            QDateTime momentInTime;
+            momentInTime.setDate(QDate(tmp_key.year, tmp_key.month , tmp_key.day));
+            series1->append(momentInTime.toMSecsSinceEpoch(),  tmp_value);
+
+            max_count = qMax(max_count, tmp_value);
+            min_date = qMin(momentInTime, min_date);
+            max_date = qMax(momentInTime,max_date);
+        }
+        for(int j=0; j<user_vector2.length(); ++j)
+        {
+            SingleTime tmp_key = user_vector2.at(j).first;
+            int tmp_value = user_vector2.at(j).second;
+            QDateTime momentInTime;
+            momentInTime.setDate(QDate(tmp_key.year, tmp_key.month , tmp_key.day));
+            series2->append(momentInTime.toMSecsSinceEpoch(),  tmp_value);
+
+            max_count = qMax(max_count, tmp_value);
+            min_date = qMin(momentInTime, min_date);
+            max_date = qMax(momentInTime,max_date);
+        }
+
+        chart->addSeries(series1);
+        series1->attachAxis(axisX);
+        series1->attachAxis(axisY);
+        chart->addSeries(series2);
+        series2->attachAxis(axisX);
+        series2->attachAxis(axisY);
+
+
+    chart->legend()->setVisible(true);
+     chart->legend()->setAlignment(Qt::AlignBottom);
+    axisY->setRange(0, max_count);
+    axisX->setRange(min_date, max_date);
+
+    QChartView *chartView = new QChartView(chart);
+    chartView->setRenderHint(QPainter::Antialiasing);
+    chartView->setObjectName("drawing_chart");
+
+    // put on the canvas
+    this->ui->drawingLayout->addWidget(chartView);
+
+    this->ui->state_textEdit->setText("Difference of two users' visits are shown successfully.");
+
+    QCoreApplication::processEvents();
+
+}
+
+void FileVisualizer::on_compare2locationButton_clicked()
+{
+    int location_id1 = this->ui->location_id1->toPlainText().toInt();
+    int location_id2 = this->ui->location_id2->toPlainText().toInt();
+
+    FileLineCount = 0;
+    // first, find the location
+    Get2LocationThread *new_thread = new Get2LocationThread;
+    new_thread->location_id1 = location_id1;
+    new_thread->location_id2 = location_id2;
+
+    new_thread->run();
+
+    this->ui->progressBar->setValue(0);
+  QCoreApplication::processEvents();
+
+    while(FileLineCount <= FileLineTotal)
+    {
+
+            float progress_ratio = float(FileLineCount) / float(FileLineTotal) * 100;
+
+
+        this->ui->progressBar->setValue(progress_ratio);
+        this->ui->progressBar->update();
+
+        QCoreApplication::processEvents();
+
+
+        if(USE_DEBUG)
+        {
+            if (FileLineCount%10000==0)
+            {
+                qDebug()<<"progress bar output:"<<FileLineCount;
+            }
+        }
+
+           if(FileLineCount==FileLineTotal)
+           {
+               break;
+           }
+    }
+    this->ui->progressBar->setValue(100);
+    this->ui->progressBar->update();
+    this->ui->state_textEdit->setText("Finding location id is finished.");
+    new_thread->wait();
+
+
+
+
+    /* begin to draw */
+
+    QChart *chart = new QChart();
+
+    //set x axis
+    QDateTimeAxis *axisX = new QDateTimeAxis;
+    axisX->setTickCount(10);
+    axisX->setFormat("MMM yyyy");
+    axisX->setTitleText("Date");
+    chart->addAxis(axisX, Qt::AlignBottom);
+
+    // set y axis
+    QValueAxis *axisY = new QValueAxis;
+    axisY->setLabelFormat("%i");
+    axisY->setTitleText("Visit counts");
+    chart->addAxis(axisY, Qt::AlignLeft);
+
+    // set title
+    QString title = "Comparison of two POIs' Visit Counts ";
+    chart->setTitle(title);
+
+
+
+    int max_count = 0;
+    QDateTime min_date;
+    QDateTime max_date;
+    min_date.setDate(QDate(2021, 11, 13));
+    max_date.setDate(QDate(1949, 10, 1));
+
+    QMap<SingleTime, int> location_id1_map = new_thread->location_id1_map;
+    QMap<SingleTime, int> location_id2_map = new_thread->location_id2_map;
+    QList<SingleTime> location_id1_key = location_id1_map.keys();
+    QList<SingleTime> location_id2_key = location_id2_map.keys();
+
+    QLineSeries *series1 = new QLineSeries();
+    QLineSeries *series2 = new QLineSeries();
+
+   for(int j=0; j<location_id1_key.length(); ++j)
+   {
+       SingleTime tmp_key = location_id1_key.at(j);
+       int tmp_value = location_id1_map.value(tmp_key);
+       QDateTime momentInTime;
+       momentInTime.setDate(QDate(tmp_key.year, tmp_key.month , tmp_key.day));
+       series1->append(momentInTime.toMSecsSinceEpoch(),  tmp_value);
+
+       max_count = qMax(max_count, tmp_value);
+       min_date = qMin(momentInTime, min_date);
+       max_date = qMax(momentInTime,max_date);
+   }
+
+   for(int j=0; j<location_id2_key.length(); ++j)
+   {
+       SingleTime tmp_key = location_id2_key.at(j);
+       int tmp_value = location_id2_map.value(tmp_key);
+       QDateTime momentInTime;
+       momentInTime.setDate(QDate(tmp_key.year, tmp_key.month , tmp_key.day));
+       series2->append(momentInTime.toMSecsSinceEpoch(),  tmp_value);
+
+       max_count = qMax(max_count, tmp_value);
+       min_date = qMin(momentInTime, min_date);
+       max_date = qMax(momentInTime,max_date);
+   }
+
+   chart->addSeries(series1);
+   series1->attachAxis(axisX);
+   series1->attachAxis(axisY);
+   chart->addSeries(series2);
+   series2->attachAxis(axisX);
+   series2->attachAxis(axisY);
+
+
+chart->legend()->setVisible(true);
+chart->legend()->setAlignment(Qt::AlignBottom);
+axisY->setRange(0, max_count);
+axisX->setRange(min_date, max_date);
+
+QChartView *chartView = new QChartView(chart);
+chartView->setRenderHint(QPainter::Antialiasing);
+chartView->setObjectName("drawing_chart");
+
+// put on the canvas
+this->ui->drawingLayout->addWidget(chartView);
+
+this->ui->state_textEdit->setText("Difference of two users' visits are shown successfully.");
+
+QCoreApplication::processEvents();
+
+}

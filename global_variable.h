@@ -3,6 +3,8 @@
 
 #include <QVector>
 
+class SingleTime;
+
 extern int FileLineCount;
 extern int FileLineTotal;
 
@@ -14,6 +16,9 @@ extern float LatitudeUpper;
 extern float LatitudeLower;
 extern float LongitudeUpper;
 extern float LongitudeLower;
+extern SingleTime TimeLower;
+extern SingleTime TimeUpper;
+
 
 extern bool USE_DEBUG;
 extern bool use_location_id;
@@ -38,12 +43,25 @@ public:
         QStringList time_list = t.split('-');
         year = time_list[0].toInt();
         month = time_list[1].toInt();
-        time_list = time_list[2].split('T');
-        day = time_list[0].toInt();
-        detail_time = time_list[1];
+        QString tmp_day = time_list[2];
+        if(tmp_day.length()<=2) // just the day, no detail time
+        {
+            day = tmp_day.toInt();
+        }
+        else //with detail time
+        {
+            time_list = time_list[2].split('T');
+            day = time_list[0].toInt();
+            detail_time = time_list[1];
+        }
 
     }
 
+    QString string()
+    {
+        QString tmp=QString::number(year)+'-'+QString::number(month)+'-'+QString::number(day);
+        return tmp;
+    }
     /* 为了map能用，需要重载小于号 */
     inline bool operator < (SingleTime const &data) const
     {
@@ -60,6 +78,55 @@ public:
             return day < data.day;
         }
     }
+
+    inline bool operator > (SingleTime const &data) const
+    {
+        if(year != data.year)
+        {
+            return year > data.year;
+        }
+        else if(month != data.month)
+        {
+            return month > data.month;
+        }
+        else
+        {
+            return day > data.day;
+        }
+    }
+
+    inline bool operator <= (SingleTime const &data) const
+    {
+        if(year != data.year)
+        {
+            return year < data.year;
+        }
+        else if(month != data.month)
+        {
+            return month < data.month;
+        }
+        else
+        {
+            return day <= data.day;
+        }
+    }
+
+    inline bool operator >= (SingleTime const &data) const
+    {
+        if(year != data.year)
+        {
+            return year > data.year;
+        }
+        else if(month != data.month)
+        {
+            return month > data.month;
+        }
+        else
+        {
+            return day >= data.day;
+        }
+    }
+
 
 };
 

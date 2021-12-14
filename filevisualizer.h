@@ -28,6 +28,8 @@ public:
 
     void draw_barchart_for_top10(QVector<QPair<int, int> > *top10_vector, int user_id_lower, int user_id_upper);
 
+    void set_default_value();
+
 private slots:
     void on_exitButton_clicked();
 
@@ -36,6 +38,10 @@ private slots:
     void on_clearButton_clicked();
 
     void on_checkinButton_clicked();
+
+    void on_compare2locationButton_clicked();
+
+    void on_compare2userButton_clicked();
 
 private:
     Ui::FileVisualizer *ui;
