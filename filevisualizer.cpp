@@ -10,7 +10,13 @@
 #include <QBarCategoryAxis>
 #include <global_variable.h>
 #include <QSplineSeries>
+#include <QWebEngineView>
 
+#include <fstream>
+#include <iomanip>
+#include <iostream>
+
+using namespace std;
 
 FileVisualizer::FileVisualizer(QWidget *parent) :
     QDialog(parent),
@@ -774,3 +780,234 @@ this->ui->state_textEdit->setText("Difference of two users' visits are shown suc
 QCoreApplication::processEvents();
 
 }
+
+
+/* function used for comparison*/
+bool compare_time_for_trajectory(const TimeLocation & item1, const TimeLocation & item2)
+ {
+     return item1 < item2;
+ }
+
+void FileVisualizer::on_usertrajectoryButton_clicked()
+{
+
+    /* 第一步，从数据中找到user的数据，并按照时间排序 */
+
+    int user_id = this->ui->user_id1->toPlainText().toInt(); // 需要可视化的用户id
+    QVector<TimeLocation> user_trajectory;
+    float latitude_min=1113, latitude_max=1113;
+    float longitude_min=1113, longitude_max=1113;
+
+    for(int i=0; i<AllUsers->length(); i++)
+    {
+        SingleUser tmp_user = AllUsers->at(i);
+        if(tmp_user.user_id==user_id)
+        {
+            TimeLocation new_timelocation(tmp_user.time, tmp_user.latitude, tmp_user.longitude);
+            user_trajectory.append(new_timelocation);
+            if(latitude_min==1113)
+            {
+                latitude_min = tmp_user.latitude;
+                latitude_max = tmp_user.latitude;
+                longitude_min = tmp_user.longitude;
+                longitude_max = tmp_user.longitude;
+            }
+            else
+            {
+                latitude_min = qMin(tmp_user.latitude,latitude_min) ;
+                latitude_max = qMax(tmp_user.latitude,latitude_max) ;
+                longitude_min = qMin(tmp_user.longitude, longitude_min);
+                longitude_max = qMax(tmp_user.longitude, longitude_max);
+            }
+         }
+     }
+
+
+    std::sort(user_trajectory.begin(), user_trajectory.end(), compare_time_for_trajectory);
+
+//    for(int j=0; j<user_trajectory.length(); ++j)
+//    {
+//         qDebug()<<user_trajectory[j].time.year<<' '<<user_trajectory[j].time.month<<' '<<user_trajectory[j].time.detail_time;
+//    }
+
+    /* 第二步，保存为txt文件 */
+
+
+    ofstream out_txt_file;
+    /* 保存在download里，方便等下加载*/
+    out_txt_file.open("/Users/yanjieze/Downloads/user_trajectory.txt", ios::out | ios::trunc);
+    out_txt_file << fixed;
+
+    //存储要显示的范围
+    out_txt_file<<latitude_min<<','<<latitude_max<<','<<longitude_min<<','<<longitude_max<<'\n';
+
+    //存储要画的轨迹
+    for(int i = 0; i <user_trajectory.length() ; i++)
+    {
+        TimeLocation tmp_timelocation = user_trajectory.at(i);
+        out_txt_file << tmp_timelocation.latitude <<','<<tmp_timelocation.longitude<<'\n';
+    }
+
+    out_txt_file.close();
+
+
+
+    /* 第三步，用html画出来（在html中用js处理数据）*/
+
+
+    // 用web可视化，调用高德地图api
+    auto webView = new QWebEngineView(this);
+
+    webView->load(QUrl("file:///Users/yanjieze/Documents/code/QT_Project/final/html_file/trajectory_map.html"));
+
+
+    qDebug()<<"finish loading html file";
+
+    this->ui->drawingLayout->addWidget(webView);
+
+    QCoreApplication::processEvents();
+
+
+}
+
+
+void FileVisualizer::on_heatmapButton_clicked()
+{
+    /* 第一步，找出数据 */
+    int location_id_lower = this->ui->location_id_lower->toPlainText().toInt();
+    int location_id_upper = this->ui->location_id_upper->toPlainText().toInt();
+
+    float latitude_lower = this->ui->latitude_lower->toPlainText().toFloat();
+    float latitude_upper = this->ui->latitude_upper->toPlainText().toFloat();
+
+    float longitude_lower = this->ui->longitude_lower->toPlainText().toFloat();
+    float longitude_upper = this->ui->longitude_upper->toPlainText().toFloat();
+
+    SingleTime time_lower =  SingleTime(this->ui->time_lower->toPlainText() );
+    SingleTime time_upper =  SingleTime(this->ui->time_upper->toPlainText() );
+
+    time_lower = qMax(time_lower, TimeLower);
+    time_lower = qMin(time_lower, TimeUpper);
+
+    time_upper = qMax(time_upper, TimeLower);
+    time_upper = qMin(time_upper, TimeUpper);
+
+    location_id_lower = qMax(location_id_lower, LocationLower);
+    location_id_lower = qMin(location_id_lower, LocationUpper);
+
+    location_id_upper = qMax(location_id_upper, LocationLower);
+    location_id_upper = qMin(location_id_upper, LocationUpper);
+
+    latitude_lower = qMax(latitude_lower, LatitudeLower);
+    latitude_lower = qMin(latitude_lower, LatitudeUpper);
+
+    latitude_upper = qMax(latitude_upper, LatitudeLower);
+    latitude_upper = qMin(latitude_upper, LatitudeUpper);
+
+    longitude_lower = qMax(longitude_lower, LongitudeLower);
+    longitude_lower = qMin(longitude_lower, LongitudeUpper);
+
+    longitude_upper = qMax(longitude_upper, LongitudeLower);
+    longitude_upper = qMin(longitude_upper, LongitudeUpper);
+
+    qDebug()<<"availabel range:";
+    qDebug()<<"location id: "<<LocationLower<<" to "<<LocationUpper;
+    qDebug()<<"latitude: "<<LatitudeLower<<" to "<<LatitudeUpper;
+    qDebug()<<"longitude: "<<LongitudeLower<<" to "<<LongitudeUpper;
+
+    qDebug()<<"draw range:";
+    qDebug()<<"location id: "<<location_id_lower<<" to "<<location_id_upper;
+    qDebug()<<"latitude: "<<latitude_lower<<" to "<<latitude_upper;
+    qDebug()<<"longitude: "<<longitude_lower<<" to "<<longitude_upper;
+
+    // 我们需要的数据是：location id，位置，count
+    QMap<int, LocationCount > *poi_data_counter = new QMap<int, LocationCount >;
+
+    float latitude_min=1113, latitude_max=1113;
+    float longitude_min=1113, longitude_max=1113;
+
+    for(int i=0; i< AllUsers->length() ; ++i )
+    {
+        SingleUser tmp_usr = AllUsers->at(i);
+
+        if(tmp_usr.location_id>=location_id_lower && tmp_usr.location_id<=location_id_upper &&
+           tmp_usr.latitude>=latitude_lower && tmp_usr.latitude<=latitude_upper &&
+            tmp_usr.longitude>= longitude_lower && tmp_usr.longitude<= longitude_upper &&
+                tmp_usr.time >= time_lower && tmp_usr.time<=time_upper)
+          // in the range
+        {
+            if(latitude_min==1113)
+            {
+                latitude_min = tmp_usr.latitude;
+                latitude_max = tmp_usr.latitude;
+                longitude_min = tmp_usr.longitude;
+                longitude_max = tmp_usr.longitude;
+            }
+            else
+            {
+                latitude_min = qMin(tmp_usr.latitude,latitude_min) ;
+                latitude_max = qMax(tmp_usr.latitude,latitude_max) ;
+                longitude_min = qMin(tmp_usr.longitude, longitude_min);
+                longitude_max = qMax(tmp_usr.longitude, longitude_max);
+            }
+
+
+            if(poi_data_counter->contains(tmp_usr.location_id))
+            // this location has be recorded, update the count by date
+            {
+                LocationCount tmp_locationcount = poi_data_counter->value(tmp_usr.location_id);
+               tmp_locationcount.count += 1; //增加count
+                 poi_data_counter->insert(tmp_usr.location_id, tmp_locationcount);
+
+            }
+            else // this location not recorded
+            {
+                LocationCount tmp_locationcount(tmp_usr.latitude, tmp_usr.longitude);
+                poi_data_counter->insert(tmp_usr.location_id , tmp_locationcount);
+            }
+        }
+    }
+
+    /* 第二步，存成文件 */
+
+    ofstream out_txt_file;
+    /* 保存在download里，方便等下加载*/
+    out_txt_file.open("/Users/yanjieze/Downloads/poi_heatmap.txt", ios::out | ios::trunc);
+    out_txt_file << fixed;
+
+    //存储要显示的范围
+    out_txt_file<<latitude_min<<','<<latitude_max<<','<<longitude_min<<','<<longitude_max<<'\n';
+    QList<int>  poi_keys = poi_data_counter->keys();
+
+    //存储要画的轨迹
+    for(int i = 0; i <poi_keys.length() ; i++)
+    {
+        int tmp_location_id = poi_keys.at(i);
+        LocationCount tmp_location_count = poi_data_counter->value(tmp_location_id);
+
+        out_txt_file << tmp_location_count.latitude <<','<<tmp_location_count.longitude<<','<<tmp_location_count.count<<'\n';
+    }
+
+    out_txt_file.close();
+
+
+    /* 第三步，web读取 */
+
+
+    /* 第三步，用html画出来（在html中用js处理数据）*/
+
+    // 用web可视化，调用高德地图api
+    auto webView = new QWebEngineView(this);
+
+    webView->load(QUrl("file:///Users/yanjieze/Documents/code/QT_Project/final/html_file/poi_heatmap.html"));
+
+
+    qDebug()<<"finish loading html file";
+
+    this->ui->drawingLayout->addWidget(webView);
+
+    QCoreApplication::processEvents();
+
+
+}
+

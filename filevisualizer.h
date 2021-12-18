@@ -43,6 +43,10 @@ private slots:
 
     void on_compare2userButton_clicked();
 
+    void on_usertrajectoryButton_clicked();
+
+    void on_heatmapButton_clicked();
+
 private:
     Ui::FileVisualizer *ui;
 };

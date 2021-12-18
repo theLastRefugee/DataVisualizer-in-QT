@@ -155,6 +155,114 @@ public:
 };
 
 
+class TimeLocation{
+public:
+    SingleTime time;
+    float latitude;
+    float longitude;
+
+    TimeLocation(SingleTime t, float la, float lo): time(t), latitude(la), longitude(lo){  }
+
+    TimeLocation(){}
+
+    /* 按照时间比大小 */
+    inline bool operator < (TimeLocation const &data) const
+    {
+        if(time.year != data.time.year)
+        {
+            return time.year < data.time.year;
+        }
+        else if(time.month != data.time.month)
+        {
+            return time.month < data.time.month;
+        }
+        else if(time.day != data.time.day)
+        {
+            return time.day < data.time.day;
+        }
+        else
+        {
+            QStringList my_time= time.detail_time.split(':');
+            QStringList your_time= data.time.detail_time.split(':');
+            if(my_time[0].toInt()!=your_time[0].toInt() )
+            {
+                return my_time[0].toInt() < your_time[0].toInt();
+            }
+            else if(my_time[1].toInt()!=your_time[1].toInt() )
+            {
+                return my_time[1].toInt() < your_time[1].toInt();
+            }
+            else
+            {
+                return my_time[2].toInt() < your_time[2].toInt();
+            }
+        }
+    }
+
+    inline bool operator <= (TimeLocation const &data) const
+    {
+        if(time.year != data.time.year)
+        {
+            return time.year < data.time.year;
+        }
+        else if(time.month != data.time.month)
+        {
+            return time.month < data.time.month;
+        }
+        else
+        {
+            return time.day <= data.time.day;
+        }
+    }
+
+    inline bool operator > (TimeLocation const &data) const
+    {
+        if(time.year != data.time.year)
+        {
+            return time.year > data.time.year;
+        }
+        else if(time.month != data.time.month)
+        {
+            return time.month > data.time.month;
+        }
+        else
+        {
+            return time.day > data.time.day;
+        }
+    }
+
+    inline bool operator >= (TimeLocation const &data) const
+    {
+        if(time.year != data.time.year)
+        {
+            return time.year > data.time.year;
+        }
+        else if(time.month != data.time.month)
+        {
+            return time.month > data.time.month;
+        }
+        else
+        {
+            return time.day >= data.time.day;
+        }
+    }
+};
+
+class LocationCount{
+public:
+    float latitude;
+    float longitude;
+    int count;
+    LocationCount(float la, float lo):latitude(la), longitude(lo)
+    {
+        count = 0;
+    }
+    LocationCount()
+    {
+        count = 0;
+    }
+};
+
 extern QVector<SingleUser> *AllUsers;
 
 #endif // GLOBAL_VARIABLE_H

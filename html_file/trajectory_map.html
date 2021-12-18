@@ -1,0 +1,74 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no, width=device-width">
+    <title>Yanjie Ze's Map Visualization</title>
+    <script src="https://webapi.amap.com/maps?v=1.4.15&key=a042ef00e0218a1a335eb99a20302e96"></script>
+    <style>
+        html,
+        body,
+        #container {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 95%;
+        }
+    </style>
+</head>
+<body>
+<div id="container"></div>
+<input id="inputfile" type="file" name="Submit" />
+<script>
+
+var map = new AMap.Map('container', {
+    zoom:1,//级别
+    center: [7.567999, 13.2445],//中心点坐标
+});
+
+let file = document.getElementById("inputfile");
+
+file.onchange = (e) => {
+    let file = e.currentTarget.files[0];  
+    filename = file.name.split(".")[0];  
+    let reader = new FileReader();  
+    reader.onload = drawMap;
+    reader.readAsText(file);
+}
+
+function drawMap() {
+    let data = this.result.split('\n');
+    let points = [];
+    let bound = data.shift().split(',').map(Number);
+
+    for (let d of data) {
+        p = d.split(',').map(Number);
+        let tmp = [p[1], p[0]];
+        points.push(tmp);
+    }
+    points.pop();
+
+    let mybounds = new AMap.Bounds([bound[2], bound[0]], [bound[3], bound[1]]);
+    map.setBounds(mybounds);
+
+    for (let p of points) {
+        let marker = new AMap.Marker({
+            position: p,
+        })
+        map.add(marker);
+    }
+
+    let lineArr = points;
+    let polyline = new AMap.Polyline({
+        path: lineArr,          //设置线覆盖物路径
+        strokeColor: "#3366FF", //线颜色
+        strokeWeight: 5,        //线宽
+        strokeStyle: "solid",   //线样式
+    });
+    map.add(polyline);
+}
+
+</script>
+</body>
+</html>
